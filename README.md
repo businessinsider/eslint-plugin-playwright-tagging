@@ -11,18 +11,6 @@ You can install the plugin using npm:
 npm install eslint-plugin-playwright-tagging --save-dev
 ```
 
-# eslint-plugin-playwright-tagging
-
-An ESLint plugin to enforce tagging of Playwright tests.
-
-## Installation
-
-You can install the plugin using npm:
-
-```sh
-npm install eslint-plugin-playwright-tagging --save-dev
-```
-
 ## Usage
 
 This plugin supports both the new "flat" config (`eslint.config.js`) for ESLint 9+ and the legacy `.eslintrc` format for ESLint 8.
