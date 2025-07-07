@@ -1,4 +1,3 @@
-
 # eslint-plugin-playwright-tagging
 
 An ESLint plugin to enforce tagging of Playwright tests.
@@ -89,4 +88,19 @@ For example, to only allow tags in the tag annotation:
 ],
 ```
 
+## Releasing
 
+To create a new release, follow these steps:
+
+1.  Go to the [Actions](https://github.com/your-repo/eslint-plugin-playwright-tagging/actions) tab in your GitHub repository.
+2.  Select the "Publish" workflow.
+3.  Click the "Run workflow" button.
+4.  Enter the version you want to release (e.g., `1.0.1`, `1.1.0-beta.0`) in the input field.
+5.  Click the "Run workflow" button to start the release process.
+
+This will automatically:
+
+-   Create a new Git tag for the release.
+-   Generate a changelog and commit it.
+-   Create a GitHub release.
+-   Publish the new version to npm.
