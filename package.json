@@ -1,0 +1,32 @@
+{
+  "name": "eslint-plugin-playwright-tagging",
+  "version": "1.0.0",
+  "description": "ESLint rule to enforce tagging of Playwright tests",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node dist/tests/lib/rules/validate-tags-playwright.js"
+  },
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "playwright"
+  ],
+  "author": "Business Insider",
+  "license": "ISC",
+  "dependencies": {
+    "@typescript-eslint/utils": "^8.35.1",
+    "eslint": "^9.30.1"
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.0.4",
+    "@types/eslint": "^9.6.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.10",
+    "@typescript-eslint/parser": "^8.35.1",
+    "@typescript-eslint/rule-tester": "^8.35.1",
+    "typescript": "^5.8.3"
+  }
+}
