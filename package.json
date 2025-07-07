@@ -4,6 +4,11 @@
   "description": "ESLint rule to enforce tagging of Playwright tests",
   "main": "dist/index.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/businessinsider/eslint-plugin-playwright-tagging.git"
+  },
+  "homepage": "https://github.com/businessinsider/eslint-plugin-playwright-tagging#readme",
   "scripts": {
     "build": "tsc",
     "release": "release-it",
