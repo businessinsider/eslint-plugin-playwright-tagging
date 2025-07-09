@@ -92,7 +92,7 @@ For example, to only allow tags in the tag annotation:
 
 To create a new release, follow these steps:
 
-1.  Go to the [Actions](https://github.com/your-repo/eslint-plugin-playwright-tagging/actions) tab in your GitHub repository.
+1.  Go to the [Actions](https://github.com/businessinsider/eslint-plugin-playwright-tagging/actions) tab in your GitHub repository.
 2.  Select the "Publish" workflow.
 3.  Click the "Run workflow" button.
 4.  Enter the version you want to release (e.g., `1.0.1`, `1.1.0-beta.0`) in the input field.
