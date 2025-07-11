@@ -24,11 +24,15 @@ const recommendedFlat = {
   },
 };
 
-// Using `export =` provides better CommonJS compatibility for ESLint 8
-export default {
+const main = {
   ...plugin,
   configs: {
-    'recommended': recommendedLegacy,
+    recommended: recommendedLegacy,
     'recommended-flat': recommendedFlat,
   },
 };
+
+export const { rules, configs } = main;
+
+// The default export is for ESM consumers (e.g., ESLint 9 flat config)
+export default main;
