@@ -18,7 +18,7 @@
   "scripts": {
     "build": "tsup index.ts --format esm,cjs --dts",
     "release": "release-it",
-    "test": "npm run build && node dist/tests/lib/rules/validate-tags-playwright.js"
+    "test": "tsx --test tests/lib/rules/validate-tags-playwright.test.ts"
   },
   "keywords": [
     "eslint",
@@ -36,13 +36,14 @@
     "@release-it/conventional-changelog": "^10.0.1",
     "@types/eslint": "^9.6.1",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.10",
+    "@types/node": "^24.0.13",
     "@typescript-eslint/parser": "^8.36.0",
     "@typescript-eslint/rule-tester": "^8.36.0",
     "@typescript-eslint/utils": "^8.36.0",
-    "eslint": "^9.30.1",
+    "eslint": "^9.31.0",
     "release-it": "^19.0.3",
     "tsup": "^8.5.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }

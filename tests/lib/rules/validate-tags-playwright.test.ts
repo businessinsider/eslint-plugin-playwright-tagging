@@ -2,10 +2,12 @@
 import rule from '../../../rules/validate-tags-playwright.js';
 import { RuleTester } from '@typescript-eslint/rule-tester';
 import tsParser from '@typescript-eslint/parser';
+import { describe, it } from 'node:test';
+
 
 RuleTester.afterAll = () => {};
-RuleTester.describe = (text, method) => method();
-RuleTester.it = (text, method) => method();
+RuleTester.describe = describe;
+RuleTester.it = it;
 
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -57,12 +59,9 @@ ruleTester.run('validate-tags-playwright', rule, {
     },
     {
       code: `
-        test('should do something', () => {
-          test.info().annotations.push({
-            type: 'tag',
-            description: 'smoke',
-          });
-        });
+        test('should do something', {
+          tag: 'smoke',
+        }, () => {});
       `,
       options: [
         {
@@ -73,16 +72,9 @@ ruleTester.run('validate-tags-playwright', rule, {
     },
     {
       code: `
-        test('should do something', () => {
-          test.info().annotations.push({
-            type: 'tag',
-            description: 'smoke',
-          });
-          test.info().annotations.push({
-            type: 'tag',
-            description: 'regression',
-          });
-        });
+        test('should do something', {
+          tag: ['smoke', 'regression'],
+        }, () => {});
       `,
       options: [
         {
@@ -192,7 +184,3 @@ ruleTester.run('validate-tags-playwright', rule, {
     },
   ],
 });
-
-
-
-

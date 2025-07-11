@@ -25,7 +25,7 @@ const recommendedFlat = {
 };
 
 // Using `export =` provides better CommonJS compatibility for ESLint 8
-export = {
+export default {
   ...plugin,
   configs: {
     'recommended': recommendedLegacy,
