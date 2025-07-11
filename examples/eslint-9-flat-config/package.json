@@ -1,0 +1,15 @@
+{
+  "name": "eslint-9-flat-config-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Example setup for eslint-plugin-playwright-tagging with ESLint 9+",
+  "main": "test.spec.js",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "eslint-plugin-playwright-tagging": "file:../.."
+  }
+}

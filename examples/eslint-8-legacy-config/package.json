@@ -1,0 +1,14 @@
+{
+  "name": "eslint-8-legacy-config-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Example setup for eslint-plugin-playwright-tagging with ESLint 8",
+  "main": "test.spec.js",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-plugin-playwright-tagging": "file:../.."
+  }
+}
