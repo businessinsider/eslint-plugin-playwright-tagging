@@ -6,7 +6,16 @@ const plugin = {
   },
 };
 
-const recommended = {
+// Config for ESLint 8 (legacy)
+const recommendedLegacy = {
+  plugins: ['playwright-tagging'],
+  rules: {
+    'playwright-tagging/validate-tags-playwright': 'error',
+  },
+};
+
+// Config for ESLint 9+ (flat)
+const recommendedFlat = {
   plugins: {
     'playwright-tagging': plugin,
   },
@@ -15,17 +24,11 @@ const recommended = {
   },
 };
 
-const recommendedLegacy = {
-  plugins: ['playwright-tagging'],
-  rules: {
-    'playwright-tagging/validate-tags-playwright': 'error',
-  },
-};
-
-export default {
+// Using `export =` provides better CommonJS compatibility for ESLint 8
+export = {
   ...plugin,
   configs: {
-    recommended,
-    'recommended-legacy': recommendedLegacy,
+    'recommended': recommendedLegacy,
+    'recommended-flat': recommendedFlat,
   },
 };
