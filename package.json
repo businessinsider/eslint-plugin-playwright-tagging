@@ -4,6 +4,7 @@
   "description": "ESLint rule to enforce tagging of Playwright tests",
   "type": "module",
   "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",

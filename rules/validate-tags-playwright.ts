@@ -41,6 +41,7 @@ export default createRule({
       missingTag: 'Test must contain a tag',
       missingTagFromGroup: 'Test must contain at least one tag from: {{groups}}',
       disallowedTagInTitle: 'Tags are not allowed in the test title',
+      unknownTag: 'Unknown tag "{{tag}}". It does not belong to any configured tag group. Available tags by group:{{availableTags}}',
     },
   },
   defaultOptions: [
@@ -58,7 +59,7 @@ export default createRule({
       tagGroups: {},
     };
 
-    const getAnnotationTags = (node: TSESTree.Node): string[] => {
+    const getAnnotationTags = (node: TSESTree.Node): { tag: string; node: TSESTree.Node }[] => {
       if (!node || node.type !== 'ObjectExpression') {
         return [];
       }
@@ -75,16 +76,16 @@ export default createRule({
       }
 
       if (tagProperty.value.type === 'Literal' && typeof tagProperty.value.value === 'string') {
-        return [tagProperty.value.value];
+        return [{ tag: tagProperty.value.value, node: tagProperty.value }];
       }
 
       if (tagProperty.value.type === 'ArrayExpression') {
         return tagProperty.value.elements.map(el => {
           if (el && el.type === 'Literal' && typeof el.value === 'string') {
-            return el.value;
+            return { tag: el.value, node: el };
           }
-          return '';
-        }).filter(Boolean);
+          return null;
+        }).filter((x): x is { tag: string; node: TSESTree.StringLiteral } => x !== null);
       }
 
       return [];
@@ -93,74 +94,103 @@ export default createRule({
     return {
       CallExpression(node: TSESTree.CallExpression) {
         if (
-          node.callee.type === 'Identifier' &&
-          node.callee.name === 'test' &&
-          node.arguments.length > 0 &&
-          node.arguments[0].type === 'Literal'
+          node.callee.type !== 'Identifier' ||
+          node.callee.name !== 'test' ||
+          node.arguments.length === 0 ||
+          node.arguments[0].type !== 'Literal'
         ) {
-          const title = String(node.arguments[0].value);
-          const titleTags = (title.match(/@([^\s]+)/g) || []).map(t =>
-            t.substring(1)
-          );
+          return;
+        }
 
-          if (!allow.title && titleTags.length > 0) {
+        const titleNode = node.arguments[0];
+        const title = String(titleNode.value);
+        const rawTitleTags = title.match(/@([^\s]+)/g) || [];
+
+        // Explicitly handle disallowed title tags first and exit.
+        if (!allow.title && rawTitleTags.length > 0) {
+          context.report({
+            node: titleNode,
+            messageId: 'disallowedTagInTitle',
+          });
+          return; // Stop all other validation for this node.
+        }
+
+        const normalize = (tag: string) => tag.trim().replace(/^@/, '');
+
+        // Collect all tags from the sources that are actually allowed.
+        const titleTagInfo = allow.title
+          ? rawTitleTags.map(tag => ({ tag, node: titleNode }))
+          : [];
+
+        const annotationTagInfo = allow.tagAnnotation
+          ? getAnnotationTags(node.arguments[1])
+          : [];
+
+        const allTagInfo = [...titleTagInfo, ...annotationTagInfo];
+        const configuredTagKeys = Object.keys(tagGroups);
+
+        if (configuredTagKeys.length === 0) {
+          if (allTagInfo.length === 0) {
             context.report({
-              node: node.arguments[0],
-              messageId: 'disallowedTagInTitle',
-            });
-            return;
-          }
-
-          const annotationTags = allow.tagAnnotation
-            ? getAnnotationTags(node.arguments[1])
-            : [];
-
-          const normalize = (tag: string) => tag.trim().replace(/^@/, '');
-
-          const allTags = [
-            ...(allow.title ? titleTags : []),
-            ...annotationTags,
-          ].map(normalize);
-
-          const configuredTagKeys = Object.keys(tagGroups);
-          if (configuredTagKeys.length > 0) {
-            const unsatisfiedGroups = [];
-            for (const key of configuredTagKeys) {
-              const approvedTags = tagGroups[key].map(normalize);
-              const hasTagFromGroup = allTags.some(tag =>
-                approvedTags.includes(tag)
-              );
-              if (!hasTagFromGroup) {
-                unsatisfiedGroups.push(`${key} (${tagGroups[key].join(', ')})`);
-              }
-            }
-
-            if (unsatisfiedGroups.length > 0) {
-              context.report({
-                node: node.arguments[0],
-                messageId: 'missingTagFromGroup',
-                data: {
-                  groups: unsatisfiedGroups.join(' and '),
-                },
-              });
-            }
-          } else if (allTags.length === 0) {
-            context.report({
-              node: node.arguments[0],
+              node: titleNode,
               messageId: 'missingTag',
               fix: allow.title
                 ? fixer => {
-                    const currentTitle =
-                      (node.arguments[0] as TSESTree.Literal).raw ?? '';
+                    const currentTitle = titleNode.raw ?? '';
                     const newTitle = `${currentTitle.slice(
                       0,
                       -1
                     )} @tagme${currentTitle.slice(-1)}`;
-                    return fixer.replaceText(node.arguments[0], newTitle);
+                    return fixer.replaceText(titleNode, newTitle);
                   }
                 : undefined,
             });
           }
+          return;
+        }
+
+        // --- Validations when tagGroups are configured ---
+        const allAvailableTags = new Set(Object.values(tagGroups).flat().map(normalize));
+
+        // First, check for any unknown tags. If found, report and exit immediately.
+        for (const { tag, node: tagNode } of allTagInfo) {
+          const normalizedTag = normalize(tag);
+          if (!allAvailableTags.has(normalizedTag)) {
+            const availableTagsFormatted = Object.entries(tagGroups)
+              .map(([group, tags]) => `\n  - ${group}: ${tags.join(', ')}`)
+              .join('');
+
+            context.report({
+              node: tagNode,
+              messageId: 'unknownTag',
+              data: {
+                tag,
+                availableTags: availableTagsFormatted,
+              },
+            });
+            return; // Exit after finding the first unknown tag.
+          }
+        }
+
+        // If all tags are valid, proceed to check for missing group tags.
+        const allTags = allTagInfo.map(info => normalize(info.tag));
+        const unsatisfiedGroups = [];
+        for (const key of configuredTagKeys) {
+          const approvedTags = tagGroups[key].map(normalize);
+          const hasTagFromGroup = allTags.some(tag => approvedTags.includes(tag));
+          if (!hasTagFromGroup) {
+            unsatisfiedGroups.push(`${key} (${approvedTags.join(', ')})`);
+          }
+        }
+
+        if (unsatisfiedGroups.length > 0) {
+          context.report({
+            node: titleNode,
+            messageId: 'missingTagFromGroup',
+            data: {
+              groups: unsatisfiedGroups.join(' and '),
+            },
+          });
         }
       },
     };

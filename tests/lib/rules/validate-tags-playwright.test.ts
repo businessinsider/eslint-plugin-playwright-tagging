@@ -182,5 +182,45 @@ ruleTester.run('validate-tags-playwright', rule, {
       ],
       errors: [{ messageId: 'missingTagFromGroup' }],
     },
+    {
+      code: "test('should do something @unknown', () => {});",
+      options: [
+        {
+          allow: { title: true, tagAnnotation: false },
+          tagGroups: { priority: ['smoke', 'fast'], type: ['regression'] },
+        },
+      ],
+      errors: [
+        {
+          messageId: 'unknownTag',
+          data: {
+            tag: '@unknown',
+            availableTags: '\n  - priority: smoke\n  - type: regression',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        test('should do something', {
+          tag: ['smoke', 'unknown'],
+        }, () => {});
+      `,
+      options: [
+        {
+          allow: { title: false, tagAnnotation: true },
+          tagGroups: { priority: ['smoke'], type: ['regression'] },
+        },
+      ],
+      errors: [
+        {
+          messageId: 'unknownTag',
+          data: {
+            tag: 'unknown',
+            availableTags: '\n  - priority: smoke\n  - type: regression',
+          },
+        },
+      ],
+    },
   ],
 });
