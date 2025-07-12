@@ -59,6 +59,11 @@ export default createRule({
       tagGroups: {},
     };
 
+    // Helper type guard for string literals
+    function isStringLiteral(node: TSESTree.Node | null | undefined): node is TSESTree.Literal & { value: string } {
+      return !!node && node.type === 'Literal' && typeof node.value === 'string';
+    }
+
     const getAnnotationTags = (node: TSESTree.Node): { tag: string; node: TSESTree.Node }[] => {
       if (!node || node.type !== 'ObjectExpression') {
         return [];
@@ -75,17 +80,14 @@ export default createRule({
         return [];
       }
 
-      if (tagProperty.value.type === 'Literal' && typeof tagProperty.value.value === 'string') {
+      if (isStringLiteral(tagProperty.value)) {
         return [{ tag: tagProperty.value.value, node: tagProperty.value }];
       }
 
       if (tagProperty.value.type === 'ArrayExpression') {
-        return tagProperty.value.elements.map(el => {
-          if (el && el.type === 'Literal' && typeof el.value === 'string') {
-            return { tag: el.value, node: el };
-          }
-          return null;
-        }).filter((x): x is { tag: string; node: TSESTree.Literal } => x !== null);
+        return tagProperty.value.elements
+          .filter(isStringLiteral)
+          .map(el => ({ tag: el.value, node: el }));
       }
 
       return [];

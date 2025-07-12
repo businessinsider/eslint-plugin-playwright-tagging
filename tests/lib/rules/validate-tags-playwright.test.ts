@@ -94,6 +94,20 @@ ruleTester.run('validate-tags-playwright', rule, {
       ],
     },
     {
+      // Should gracefully handle non-string values in tag array
+      code: `
+        test('should do something', {
+          tag: ['smoke', 123, null, 'regression'],
+        }, () => {});
+      `,
+      options: [
+        {
+          allow: { title: false, tagAnnotation: true },
+          tagGroups: { priority: ['smoke'], type: ['regression'] },
+        },
+      ],
+    },
+    {
       // Should ignore other function calls like describe()
       code: "describe('a suite with @tag', () => {});",
     },
@@ -210,6 +224,21 @@ ruleTester.run('validate-tags-playwright', rule, {
         },
       ],
       errors: [{ messageId: 'missingTagFromGroup' }],
+    },
+    {
+      // Missing a required tag group when tags are in an array
+      code: `
+        test('should do something', {
+          tag: ['smoke'],
+        }, () => {});
+      `,
+      options: [
+        {
+          allow: { title: false, tagAnnotation: true },
+          tagGroups: { priority: ['smoke'], type: ['regression'] },
+        },
+      ],
+      errors: [{ messageId: 'missingTagFromGroup', data: { groups: 'type (regression)' } }],
     },
     {
       // Annotation tags are ignored when allow.tagAnnotation is false
