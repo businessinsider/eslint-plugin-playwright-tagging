@@ -85,7 +85,7 @@ export default createRule({
             return { tag: el.value, node: el };
           }
           return null;
-        }).filter((x): x is { tag: string; node: TSESTree.StringLiteral } => x !== null);
+        }).filter((x): x is { tag: string; node: TSESTree.Literal } => x !== null);
       }
 
       return [];
