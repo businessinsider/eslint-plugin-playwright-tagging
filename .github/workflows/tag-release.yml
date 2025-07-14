@@ -1,0 +1,36 @@
+name: Tag Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    name: Create and Push Git Tag
+    runs-on: ubuntu-latest
+    # Run this job only if the commit message indicates it's a release.
+    if: startsWith(github.event.head_commit.message, 'chore: release v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from commit message
+        id: extract_version
+        run: |
+          # Extracts the version number from a commit message like "chore: release v1.2.3"
+          VERSION=$(echo "${{ github.event.head_commit.message }}" | sed -n 's/chore: release v//p')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Create and push Git tag
+        run: |
+          VERSION=${{ steps.extract_version.outputs.version }}
+          echo "Creating tag v${VERSION}"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          git tag "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
