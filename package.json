@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/businessinsider/eslint-plugin-playwright-tagging#readme",
   "scripts": {
-    "prepare": "npm run build",
     "build": "tsup index.ts --format esm,cjs --dts",
     "release": "release-it",
     "test": "tsx --test tests/lib/rules/validate-tags-playwright.test.ts"
