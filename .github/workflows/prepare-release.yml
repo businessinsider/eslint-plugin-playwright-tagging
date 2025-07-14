@@ -3,9 +3,14 @@ name: Prepare Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'The version to release (e.g., 1.0.0)'
+      bump_type:
+        description: 'The type of version bump'
         required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -30,27 +35,36 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Get next version
+        id: get_next_version
+        run: |
+          # We need to run release-it twice: once to get the next version, and again to build the changelog.
+          # The first run is a dry run to avoid creating the changelog prematurely.
+          NEXT_VERSION=$(npx release-it ${{ github.event.inputs.version }} --ci --dry-run --no-git --no-github --no-npm --json | jq -r '.version.latest')
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
       - name: Update version and changelog
-        run: npx release-it ${{ github.event.inputs.version }} --ci --no-git --no-github --no-npm
+        run: npx release-it ${{ steps.get_next_version.outputs.next_version }} --ci --no-git --no-github --no-npm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "chore: release v${{ github.event.inputs.version }}"
-          title: "chore: release v${{ github.event.inputs.version }}"
+          commit-message: "chore: release v${{ steps.get_next_version.outputs.next_version }}"
+          title: "chore: release v${{ steps.get_next_version.outputs.next_version }}"
           body: |
-            This PR contains the version bump and changelog for `v${{ github.event.inputs.version }}`.
+            This PR contains the version bump and changelog for `v${{ steps.get_next_version.outputs.next_version }}`.
 
             **Next Steps:**
-            1. Merge this PR into `main`.
-            2. From your local machine, pull the latest `main`.
-            3. Run the following commands to trigger the publish workflow:
-               ```sh
-               git tag v${{ github.event.inputs.version }}
-               git push origin v${{ github.event.inputs.version }}
-               ```
-          branch: "chore/release-v${{ github.event.inputs.version }}"
+
+            1.  Review and merge this PR into `main`.
+            2.  After merging, pull the latest changes to your local machine.
+            3.  Create and push the Git tag to trigger the publish workflow:
+                ```sh
+                git tag v${{ steps.get_next_version.outputs.next_version }}
+                git push origin v${{ steps.get_next_version.outputs.next_version }}
+                ```
+          branch: "chore/release-v${{ steps.get_next_version.outputs.next_version }}"
           base: "main"
           delete-branch: true
