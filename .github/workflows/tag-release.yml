@@ -13,7 +13,7 @@ jobs:
     name: Create and Push Git Tag
     runs-on: ubuntu-latest
     # Run this job only if the commit message indicates it's a release.
-    if: startsWith(github.event.head_commit.message, 'chore: release v')
+    if: "${{ startsWith(github.event.head_commit.message, 'chore: release v') }}"
 
     steps:
       - name: Checkout code
