@@ -127,6 +127,7 @@ ruleTester.run('validate-tags-playwright', rule, {
       code: "test('should do something', () => {});",
       options: [
         {
+          allow: { title: true, tagAnnotation: false },
           tagGroups: { priority: ['smoke'] },
         },
       ],
