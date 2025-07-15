@@ -1,4 +1,7 @@
 {
+  "git": {
+    "tag": false
+  },
   "github": {
     "release": true
   },
