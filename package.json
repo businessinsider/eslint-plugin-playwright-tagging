@@ -19,6 +19,7 @@
   "scripts": {
     "build": "tsup index.ts --format esm,cjs --dts",
     "release": "release-it",
+    "release:beta": "npm version prerelease --preid=beta && npm publish --restricted",
     "test": "tsx --test tests/lib/rules/validate-tags-playwright.test.ts"
   },
   "keywords": [
