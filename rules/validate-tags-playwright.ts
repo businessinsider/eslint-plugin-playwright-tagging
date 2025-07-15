@@ -41,7 +41,7 @@ export default createRule({
       missingTag: 'Test must contain a tag',
       missingTagFromGroup: 'Test must contain at least one tag from: {{groups}}',
       disallowedTagInTitle: 'Tags are not allowed in the test title',
-      unknownTag: 'Unknown tag "{{tag}}". It does not belong to any configured tag group. Available tags by group:{{availableTags}}',
+      unknownTag: 'Unknown tag "{{tag}}". It does not belong to any configured tag group. Available tags by group: {{availableTags}}',
     },
   },
   defaultOptions: [
