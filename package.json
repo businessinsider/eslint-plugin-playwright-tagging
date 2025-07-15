@@ -16,8 +16,12 @@
     "url": "git+https://github.com/businessinsider/eslint-plugin-playwright-tagging.git"
   },
   "homepage": "https://github.com/businessinsider/eslint-plugin-playwright-tagging#readme",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup index.ts --format esm,cjs --dts",
+    "prepare": "npm run build",
     "release": "release-it",
     "release:beta": "npm version prerelease --preid=beta && npm publish --restricted",
     "test": "tsx --test tests/lib/rules/validate-tags-playwright.test.ts"
