@@ -1,7 +1,8 @@
 {
   "git": {
     "tag": false,
-    "push": false
+    "push": false,
+    "commitMessage": "chore: release v${version}"
   },
   "github": {
     "release": true

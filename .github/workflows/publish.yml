@@ -38,7 +38,14 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Get version
+        id: get_version
+        run: |
+          # Read from package.json and get the "version" number
+          NEXT_VERSION=$(cat package.json | jq -r '.version')
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
-        run: gh release create ${{ github.ref_name }} --notes-file CHANGELOG.md --title ${{ github.ref_name }}
+        run: gh release create v${{ steps.get_version.outputs.version }} --notes-file CHANGELOG.md --title="Release v${{ steps.get_version.outputs.version }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
