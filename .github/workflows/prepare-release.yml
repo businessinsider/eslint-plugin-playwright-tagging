@@ -70,5 +70,5 @@ jobs:
                 git push origin v${{ steps.get_next_version.outputs.next_version }}
                 ```
           branch: "chore/release-v${{ steps.get_next_version.outputs.next_version }}"
-          base: "main"
+          base: "eslint-8-updates"
           delete-branch: true
