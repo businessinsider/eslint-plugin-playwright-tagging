@@ -35,18 +35,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Update version and changelog
+        run: npx release-it ${{ github.event.inputs.version }} --ci --no-github --no-npm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Get next version
         id: get_next_version
         run: |
-          # We need to run release-it twice: once to get the next version, and again to build the changelog.
-          # The first run is a dry run to avoid creating the changelog prematurely.
-          NEXT_VERSION=$(npx release-it ${{ github.event.inputs.version }} --ci --dry-run --no-git --no-github --no-npm --json | jq -r '.version.latest')
+          # Read from package.json and get the "version" number
+          NEXT_VERSION=$(cat package.json | jq -r '.version')
           echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Update version and changelog
-        run: npx release-it ${{ steps.get_next_version.outputs.next_version }} --ci --no-git --no-github --no-npm
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
