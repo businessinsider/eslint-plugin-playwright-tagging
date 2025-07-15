@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-playwright-tagging",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "ESLint rule to enforce tagging of Playwright tests",
   "type": "module",
   "main": "./dist/index.cjs",
