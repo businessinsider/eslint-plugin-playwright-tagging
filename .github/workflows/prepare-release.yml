@@ -1,0 +1,74 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'The type of version bump'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare:
+    name: Prepare Release PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update version and changelog
+        run: npx release-it ${{ github.event.inputs.version }} --ci --no-github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get next version
+        id: get_next_version
+        run: |
+          # Read from package.json and get the "version" number
+          NEXT_VERSION=$(cat package.json | jq -r '.version')
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: release v${{ steps.get_next_version.outputs.next_version }}"
+          title: "chore: release v${{ steps.get_next_version.outputs.next_version }}"
+          body: |
+            This PR contains the version bump and changelog for `v${{ steps.get_next_version.outputs.next_version }}`.
+
+            **Next Steps:**
+
+            1.  Review and merge this PR into `main`.
+            2.  After merging, pull the latest changes to your local machine.
+            3.  Create and push the Git tag to trigger the publish workflow:
+                ```sh
+                git tag v${{ steps.get_next_version.outputs.next_version }}
+                git push origin v${{ steps.get_next_version.outputs.next_version }}
+                ```
+          branch: "chore/release-v${{ steps.get_next_version.outputs.next_version }}"
+          base: "eslint-8-updates"
+          delete-branch: true

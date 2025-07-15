@@ -1,18 +1,26 @@
 {
   "name": "eslint-plugin-playwright-tagging",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "ESLint rule to enforce tagging of Playwright tests",
-  "main": "dist/index.js",
   "type": "module",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/businessinsider/eslint-plugin-playwright-tagging.git"
   },
   "homepage": "https://github.com/businessinsider/eslint-plugin-playwright-tagging#readme",
   "scripts": {
-    "build": "tsc",
+    "build": "tsup index.ts --format esm,cjs --dts",
     "release": "release-it",
-    "test": "npm run build && node dist/tests/lib/rules/validate-tags-playwright.js"
+    "release:beta": "npm version prerelease --preid=beta && npm publish --restricted",
+    "test": "tsx --test tests/lib/rules/validate-tags-playwright.test.ts"
   },
   "keywords": [
     "eslint",
@@ -22,19 +30,22 @@
   ],
   "author": "Business Insider",
   "license": "ISC",
-  "dependencies": {
-    "@typescript-eslint/utils": "^8.35.1",
-    "eslint": "^9.30.1"
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.0.4",
     "@release-it/conventional-changelog": "^10.0.1",
     "@types/eslint": "^9.6.1",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.10",
-    "@typescript-eslint/parser": "^8.35.1",
-    "@typescript-eslint/rule-tester": "^8.35.1",
+    "@types/node": "^24.0.13",
+    "@typescript-eslint/parser": "^8.36.0",
+    "@typescript-eslint/rule-tester": "^8.36.0",
+    "@typescript-eslint/utils": "^8.36.0",
+    "eslint": "^9.31.0",
     "release-it": "^19.0.3",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }

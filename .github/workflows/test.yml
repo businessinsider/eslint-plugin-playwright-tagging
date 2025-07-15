@@ -1,19 +1,35 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [ready_for_review, opened, reopened, synchronize]
 
 jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        eslint-version: [8, 9]
+
     steps:
     - uses: actions/checkout@v4
+
     - name: Use Node.js from .nvmrc
       uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
+        cache: 'npm'
+
     - name: Install dependencies
       run: npm ci
+
+    - name: Install ESLint v${{ matrix.eslint-version }}
+      run: npm install --save-dev eslint@${{ matrix.eslint-version }}
+
+    - name: Build
+      run: npm run build
+
     - name: Run tests
       run: npm test

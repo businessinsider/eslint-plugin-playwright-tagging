@@ -1,4 +1,4 @@
-# eslint-plugin-playwright-tagging
+# ESLint Plugin Playwright Tagging
 
 An ESLint plugin to enforce tagging of Playwright tests.
 
@@ -7,100 +7,106 @@ An ESLint plugin to enforce tagging of Playwright tests.
 You can install the plugin using npm:
 
 ```sh
-npm install eslint-plugin-playwright-tagging --save-dev
+npm i -D eslint-plugin-playwright-tagging
 ```
 
 ## Usage
 
-This plugin supports both the new "flat" config (`eslint.config.js`) for ESLint 9+ and the legacy `.eslintrc` format for ESLint 8.
+This plugin supports both the new "flat config" format (ESLint v9+) and the legacy `.eslintrc.js` format (ESLint v8).
 
-### ESLint 9+ (Flat Config)
+### With ESLint 9+ (Flat Config)
 
-In your `eslint.config.js` file:
+Add the plugin to your `eslint.config.js` file:
 
 ```javascript
+// eslint.config.js
 import playwrightTagging from 'eslint-plugin-playwright-tagging';
 
 export default [
-  playwrightTagging.configs.recommended,
   {
-    // Optionally override rule settings
+    files: ["tests/**/*.spec.js"], // Or your test files
+    ...playwrightTagging.configs['recommended-flat'],
+    // To add custom options:
     rules: {
-      'playwright-tagging/validate-tags-playwright': [
-        'error',
-        {
-          tagGroups: {
-            priority: ['smoke', 'regression'],
-          },
+      'playwright-tagging/validate-tags-playwright': ['error', {
+        allow: {
+          title: false, // Do not allow tags in test titles
+          tagAnnotation: true // Allow tags via test.info().annotations
         },
-      ],
-    },
-  },
+        tagGroups: {
+          tier: ['@tier1', '@tier2'],
+          team: ['@squad-a', '@squad-b']
+        }
+      }]
+    }
+  }
 ];
 ```
 
-### ESLint 8 (Legacy `.eslintrc`)
+### With ESLint 8 (Legacy Config)
 
-In your `.eslintrc.js` file:
+Add `playwright-tagging` to the plugins section of your `.eslintrc.js` configuration file. You can omit the `eslint-plugin-` prefix:
 
 ```javascript
+// .eslintrc.js
 module.exports = {
-  extends: 'plugin:playwright-tagging/recommended-legacy',
-  rules: {
-    // Optionally override rule settings
-    'playwright-tagging/validate-tags-playwright': [
-      'error',
-      {
-        tagGroups: {
-          priority: ['smoke', 'regression'],
-        },
-      },
-    ],
-  },
+  plugins: [
+    'playwright-tagging'
+  ],
+  overrides: [
+    {
+      files: ['tests/**/*.spec.js'], // Or your test files
+      extends: [
+        'plugin:playwright-tagging/recommended'
+      ],
+      // To add custom options:
+      rules: {
+        'playwright-tagging/validate-tags-playwright': ['error', {
+          allow: {
+            title: true, // Allow tags in test titles
+            tagAnnotation: false // Do not allow tags via test.info().annotations
+          },
+          tagGroups: {
+            tier: ['@tier1', '@tier2'],
+            team: ['@squad-a', '@squad-b']
+          }
+        }]
+      }
+    }
+  ]
 };
 ```
 
-## Rule Details
+## Rule: validate-tags-playwright
 
-The `validate-tags-playwright` rule ensures that all Playwright `test` calls have at least one tag from each of the configured groups.
+This rule ensures that every Playwright `test` block is associated with one or more tags.
 
-### Configuring Tag Locations
+### Options
 
-By default, tags are only allowed in the test title. You can configure where tags are allowed using the `allow` option:
+The rule takes an optional object with the following properties:
 
-- `title`: Set to `false` to disallow tags in the test title.
-- `tagAnnotation`: Set to `true` to allow tags in the Playwright `test.info().annotations` object.
+-   `tagGroups` (optional): An object where each key is a "group name" and the value is an array of tags. The rule will enforce that every test has at least one tag from each defined group.
+-   `allow` (optional): An object to control where tags can be placed.
+    -   `title`: `boolean` (default: `true`). Allows tags in the test title (e.g., `test('@smoke ...')`). If set to `false`, an error will be reported if tags are found in the title.
+    -   `tagAnnotation`: `boolean` (default: `false`). Allows tags via the test's options object, which is commonly used for `test.info().annotations`. The plugin specifically looks for a `tag` property that can be a string or an array of strings.
 
-For example, to only allow tags in the tag annotation:
+### Automatic Fixes
 
-```javascript
-'playwright-tagging/validate-tags-playwright': [
-  'error',
-  {
-    tagGroups: {
-      priority: ['smoke', 'regression', 'integration'],
-    },
-    allow: {
-      title: false,
-      tagAnnotation: true,
-    }
-  },
-],
+When no `tagGroups` are configured and a test is missing a tag, the rule can automatically add a placeholder tag (`@tagme`) to the test title as a fix. This feature is only active when `allow.title` is `true`.
+
+#### Example: `tagGroups`
+
+If you want to ensure every test has both a `tier` tag and a `team` tag, you can configure it like this:
+
+```json
+{
+  "tagGroups": {
+    "tier": ["@tier1", "@tier2", "@tier3"],
+    "team": ["@squad-a", "@squad-b"]
+  }
+}
 ```
 
-## Releasing
+A test titled `test('@tier1 @squad-a my test')` would pass, but `test('@tier1 my test')` would fail because it is missing a tag from the `team` group.
 
-To create a new release, follow these steps:
-
-1.  Go to the [Actions](https://github.com/businessinsider/eslint-plugin-playwright-tagging/actions) tab in your GitHub repository.
-2.  Select the "Publish" workflow.
-3.  Click the "Run workflow" button.
-4.  Enter the version you want to release (e.g., `1.0.1`, `1.1.0-beta.0`) in the input field.
-5.  Click the "Run workflow" button to start the release process.
-
-This will automatically:
-
--   Create a new Git tag for the release.
--   Generate a changelog and commit it.
--   Create a GitHub release.
--   Publish the new version to npm.
+**Note:** The plugin normalizes tags by removing the leading `@` symbol and trimming whitespace before validation. This means you can define tags in your configuration with or without the `@` prefix (e.g., `'@tier1'` and `'tier1'` are treated as the same tag).

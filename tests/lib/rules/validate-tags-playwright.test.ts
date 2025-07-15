@@ -2,10 +2,12 @@
 import rule from '../../../rules/validate-tags-playwright.js';
 import { RuleTester } from '@typescript-eslint/rule-tester';
 import tsParser from '@typescript-eslint/parser';
+import { describe, it } from 'node:test';
+
 
 RuleTester.afterAll = () => {};
-RuleTester.describe = (text, method) => method();
-RuleTester.it = (text, method) => method();
+RuleTester.describe = describe;
+RuleTester.it = it;
 
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -42,7 +44,7 @@ ruleTester.run('validate-tags-playwright', rule, {
       options: [
         {
           allow: { title: true, tagAnnotation: false },
-          tagGroups: { projectTags: ['projectTag'], otherTags: ['otherTag'] },
+          tagGroups: { projectTags: ['projectTag'], otherTags: ['otherTag', 'anotherTag'] },
         },
       ],
     },
@@ -57,12 +59,9 @@ ruleTester.run('validate-tags-playwright', rule, {
     },
     {
       code: `
-        test('should do something', () => {
-          test.info().annotations.push({
-            type: 'tag',
-            description: 'smoke',
-          });
-        });
+        test('should do something', {
+          tag: 'smoke',
+        }, () => {});
       `,
       options: [
         {
@@ -73,16 +72,9 @@ ruleTester.run('validate-tags-playwright', rule, {
     },
     {
       code: `
-        test('should do something', () => {
-          test.info().annotations.push({
-            type: 'tag',
-            description: 'smoke',
-          });
-          test.info().annotations.push({
-            type: 'tag',
-            description: 'regression',
-          });
-        });
+        test('should do something', {
+          tag: ['smoke', 'regression'],
+        }, () => {});
       `,
       options: [
         {
@@ -91,12 +83,55 @@ ruleTester.run('validate-tags-playwright', rule, {
         },
       ],
     },
+    {
+      // Mixed tags in title and annotation
+      code: "test('should do something @smoke', { tag: 'regression' }, () => {});",
+      options: [
+        {
+          allow: { title: true, tagAnnotation: true },
+          tagGroups: { priority: ['smoke'], type: ['regression'] },
+        },
+      ],
+    },
+    {
+      // Should gracefully handle non-string values in tag array
+      code: `
+        test('should do something', {
+          tag: ['smoke', 123, null, 'regression'],
+        }, () => {});
+      `,
+      options: [
+        {
+          allow: { title: false, tagAnnotation: true },
+          tagGroups: { priority: ['smoke'], type: ['regression'] },
+        },
+      ],
+    },
+    {
+      // Should ignore other function calls like describe()
+      code: "describe('a suite with @tag', () => {});",
+    },
+    {
+      // Should ignore other function calls like it()
+      code: "it('a spec with @tag', () => {});",
+    },
   ],
   invalid: [
     {
       code: "test('should do something', () => {});",
       errors: [{ messageId: 'missingTag' }],
       output: "test('should do something @tagme', () => {});",
+    },
+    {
+      // No auto-fix should be suggested when tagGroups are configured
+      code: "test('should do something', () => {});",
+      options: [
+        {
+          allow: { title: true, tagAnnotation: false },
+          tagGroups: { priority: ['smoke'] },
+        },
+      ],
+      errors: [{ messageId: 'missingTagFromGroup', data: { groups: 'priority (smoke)' } }],
     },
     {
       code: "test('should do something @projectTag', () => {});",
@@ -142,9 +177,10 @@ ruleTester.run('validate-tags-playwright', rule, {
       ],
       errors: [
         {
-          messageId: 'missingTagFromGroup',
+          messageId: 'unknownTag',
           data: {
-            groups: 'projectTags (projectTag) and otherTags (otherTag)',
+            tag: '@wrongProject',
+            availableTags: '\n  - projectTags: projectTag\n  - otherTags: otherTag',
           },
         },
       ],
@@ -190,9 +226,75 @@ ruleTester.run('validate-tags-playwright', rule, {
       ],
       errors: [{ messageId: 'missingTagFromGroup' }],
     },
+    {
+      // Missing a required tag group when tags are in an array
+      code: `
+        test('should do something', {
+          tag: ['smoke'],
+        }, () => {});
+      `,
+      options: [
+        {
+          allow: { title: false, tagAnnotation: true },
+          tagGroups: { priority: ['smoke'], type: ['regression'] },
+        },
+      ],
+      errors: [{ messageId: 'missingTagFromGroup', data: { groups: 'type (regression)' } }],
+    },
+    {
+      // Annotation tags are ignored when allow.tagAnnotation is false
+      code: `
+        test('should do something', {
+          tag: 'smoke',
+        }, () => {});
+      `,
+      options: [
+        {
+          allow: { title: true, tagAnnotation: false },
+          tagGroups: { priority: ['smoke'] },
+        },
+      ],
+      errors: [{ messageId: 'missingTagFromGroup', data: { groups: 'priority (smoke)' } }],
+    },
+    {
+      code: "test('should do something @unknown', () => {});",
+      options: [
+        {
+          allow: { title: true, tagAnnotation: false },
+          tagGroups: { priority: ['smoke', 'fast'], type: ['regression'] },
+        },
+      ],
+      errors: [
+        {
+          messageId: 'unknownTag',
+          data: {
+            tag: '@unknown',
+            availableTags: '\n  - priority: smoke, fast\n  - type: regression',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        test('should do something', {
+          tag: ['smoke', 'unknown'],
+        }, () => {});
+      `,
+      options: [
+        {
+          allow: { title: false, tagAnnotation: true },
+          tagGroups: { priority: ['smoke'], type: ['regression'] },
+        },
+      ],
+      errors: [
+        {
+          messageId: 'unknownTag',
+          data: {
+            tag: 'unknown',
+            availableTags: '\n  - priority: smoke\n  - type: regression',
+          },
+        },
+      ],
+    },
   ],
 });
-
-
-
-
