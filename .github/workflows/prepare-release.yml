@@ -41,7 +41,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Update version and changelog
-        run: npx release-it ${{ github.event.inputs.version }} --ci --no-github
+        run: npx release-it ${{ github.event.inputs.bump_type }} --ci --no-github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
