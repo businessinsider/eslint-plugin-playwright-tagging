@@ -8,4 +8,4 @@ jobs:
   lint-pr-title:
     runs-on: ubuntu-latest
     steps:
-      - uses: ytanikin/PRConventionalCommits@v1.3.0
+      - uses: ytanikin/PRConventionalCommits@1.3.0
