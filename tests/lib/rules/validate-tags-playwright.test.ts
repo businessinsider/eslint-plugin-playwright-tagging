@@ -36,6 +36,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { projectTags: ['projectTag'], otherTags: ['otherTag'] },
+          optionalTagGroups: {},
         },
       ],
     },
@@ -45,6 +46,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { projectTags: ['projectTag'], otherTags: ['otherTag', 'anotherTag'] },
+          optionalTagGroups: {},
         },
       ],
     },
@@ -54,6 +56,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { priority: ['smoke', 'fast'], type: ['regression'] },
+          optionalTagGroups: {},
         },
       ],
     },
@@ -67,6 +70,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: false, tagAnnotation: true },
           tagGroups: { priority: ['smoke'] },
+          optionalTagGroups: {},
         },
       ],
     },
@@ -80,6 +84,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: false, tagAnnotation: true },
           tagGroups: { priority: ['smoke'], type: ['regression'] },
+          optionalTagGroups: {},
         },
       ],
     },
@@ -90,6 +95,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: true },
           tagGroups: { priority: ['smoke'], type: ['regression'] },
+          optionalTagGroups: {},
         },
       ],
     },
@@ -104,6 +110,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: false, tagAnnotation: true },
           tagGroups: { priority: ['smoke'], type: ['regression'] },
+          optionalTagGroups: {},
         },
       ],
     },
@@ -114,6 +121,16 @@ ruleTester.run('validate-tags-playwright', rule, {
     {
       // Should ignore other function calls like it()
       code: "it('a spec with @tag', () => {});",
+    },
+    {
+      code: "test('should do something @projectTag @optionalTag', () => {});",
+      options: [
+        {
+          allow: { title: true, tagAnnotation: false },
+          tagGroups: { projectTags: ['projectTag'] },
+          optionalTagGroups: { otherTags: ['optionalTag'] },
+        },
+      ],
     },
   ],
   invalid: [
@@ -129,6 +146,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { priority: ['smoke'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [{ messageId: 'missingTagFromGroup', data: { groups: 'priority (smoke)' } }],
@@ -139,6 +157,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { projectTags: ['projectTag'], otherTags: ['otherTag'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [
@@ -156,6 +175,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { projectTags: ['projectTag'], otherTags: ['otherTag'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [
@@ -173,6 +193,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { projectTags: ['projectTag'], otherTags: ['otherTag'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [
@@ -180,7 +201,7 @@ ruleTester.run('validate-tags-playwright', rule, {
           messageId: 'unknownTag',
           data: {
             tag: '@wrongProject',
-            availableTags: '\n  - projectTags: projectTag\n  - otherTags: otherTag',
+            availableTags: '\n  - projectTags (required): projectTag\n  - otherTags (required): otherTag',
           },
         },
       ],
@@ -191,6 +212,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { priority: ['smoke', 'fast'], type: ['regression'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [
@@ -208,6 +230,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: false, tagAnnotation: true },
           tagGroups: { priority: ['smoke'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [{ messageId: 'disallowedTagInTitle' }],
@@ -222,6 +245,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: false, tagAnnotation: true },
           tagGroups: { priority: ['smoke'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [{ messageId: 'missingTagFromGroup' }],
@@ -237,6 +261,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: false, tagAnnotation: true },
           tagGroups: { priority: ['smoke'], type: ['regression'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [{ messageId: 'missingTagFromGroup', data: { groups: 'type (regression)' } }],
@@ -252,6 +277,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { priority: ['smoke'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [{ messageId: 'missingTagFromGroup', data: { groups: 'priority (smoke)' } }],
@@ -262,6 +288,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: true, tagAnnotation: false },
           tagGroups: { priority: ['smoke', 'fast'], type: ['regression'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [
@@ -269,7 +296,7 @@ ruleTester.run('validate-tags-playwright', rule, {
           messageId: 'unknownTag',
           data: {
             tag: '@unknown',
-            availableTags: '\n  - priority: smoke, fast\n  - type: regression',
+            availableTags: '\n  - priority (required): smoke, fast\n  - type (required): regression',
           },
         },
       ],
@@ -284,6 +311,7 @@ ruleTester.run('validate-tags-playwright', rule, {
         {
           allow: { title: false, tagAnnotation: true },
           tagGroups: { priority: ['smoke'], type: ['regression'] },
+          optionalTagGroups: {},
         },
       ],
       errors: [
@@ -291,10 +319,47 @@ ruleTester.run('validate-tags-playwright', rule, {
           messageId: 'unknownTag',
           data: {
             tag: 'unknown',
-            availableTags: '\n  - priority: smoke\n  - type: regression',
+            availableTags: '\n  - priority (required): smoke\n  - type (required): regression',
           },
         },
       ],
     },
-  ],
+    {
+      code: "test('should do something @optionalTag', () => {});",
+      options: [
+        {
+          allow: { title: true, tagAnnotation: false },
+          tagGroups: { projectTags: ['projectTag'] },
+          optionalTagGroups: { otherTags: ['optionalTag'] },
+        },
+      ],
+      errors: [
+        {
+          messageId: 'missingTagFromGroup',
+          data: {
+            groups: 'projectTags (projectTag)',
+          },
+        },
+      ],
+    },
+    {
+      code: "test('should do something @unknown', () => {});",
+      options: [
+        {
+          allow: { title: true, tagAnnotation: false },
+          tagGroups: { projectTags: ['projectTag'] },
+          optionalTagGroups: { otherTags: ['optionalTag'] },
+        },
+      ],
+      errors: [
+        {
+          messageId: 'unknownTag',
+          data: {
+            tag: '@unknown',
+            availableTags: '\n  - projectTags (required): projectTag\n  - otherTags (optional): optionalTag',
+          },
+        },
+      ],
+    },
+  ]
 });
