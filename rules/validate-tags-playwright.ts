@@ -33,6 +33,17 @@ export default createRule({
               uniqueItems: true,
             },
           },
+          optionalTagGroups: {
+            type: 'object',
+            additionalProperties: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+              minItems: 1,
+              uniqueItems: true,
+            },
+          },
         },
         additionalProperties: false,
       },
@@ -47,6 +58,7 @@ export default createRule({
   defaultOptions: [
     {
       tagGroups: {} as Record<string, string[]>,
+      optionalTagGroups: {} as Record<string, string[]>,
       allow: { title: true, tagAnnotation: false },
     },
   ],
@@ -54,9 +66,11 @@ export default createRule({
     const {
       allow = { title: true, tagAnnotation: false },
       tagGroups = {} as Record<string, string[]>,
+      optionalTagGroups = {} as Record<string, string[]>,
     } = context.options[0] || {
       allow: { title: true, tagAnnotation: false },
       tagGroups: {},
+      optionalTagGroups: {},
     };
 
     // Helper type guard for string literals
@@ -130,8 +144,9 @@ export default createRule({
 
         const allTagInfo = [...titleTagInfo, ...annotationTagInfo];
         const configuredTagKeys = Object.keys(tagGroups);
+        const configuredOptionalTagKeys = Object.keys(optionalTagGroups);
 
-        if (configuredTagKeys.length === 0) {
+        if (configuredTagKeys.length === 0 && configuredOptionalTagKeys.length === 0) {
           if (allTagInfo.length === 0) {
             context.report({
               node: titleNode,
@@ -152,15 +167,25 @@ export default createRule({
         }
 
         // --- Validations when tagGroups are configured ---
-        const allAvailableTags = new Set(Object.values(tagGroups).flat().map(normalize));
+        const allAvailableTags = new Set(
+          [
+            ...Object.values(tagGroups).flat(),
+            ...Object.values(optionalTagGroups).flat(),
+          ].map(normalize)
+        );
 
         // First, check for any unknown tags. If found, report and exit immediately.
         for (const { tag, node: tagNode } of allTagInfo) {
           const normalizedTag = normalize(tag);
           if (!allAvailableTags.has(normalizedTag)) {
-            const availableTagsFormatted = Object.entries(tagGroups)
-              .map(([group, tags]) => `\n  - ${group}: ${tags.join(', ')}`)
-              .join('');
+            const availableTagsFormatted = [
+              ...Object.entries(tagGroups).map(
+                ([group, tags]) => `\n  - ${group} (required): ${tags.join(', ')}`
+              ),
+              ...Object.entries(optionalTagGroups).map(
+                ([group, tags]) => `\n  - ${group} (optional): ${tags.join(', ')}`
+              ),
+            ].join('');
 
             context.report({
               node: tagNode,
